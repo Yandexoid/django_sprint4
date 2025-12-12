@@ -1,4 +1,17 @@
-from django.views.generic import TemplateView
+from django.db.models import Count
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import (
+    CreateView, TemplateView, DetailView, UpdateView
+)
+from django.urls import reverse_lazy, reverse
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
+
+from .forms import CustomUserCreationForm, UserEditForm
+from blog.models import Post
+
+User = get_user_model()
 
 
 class AboutView(TemplateView):
@@ -7,3 +20,56 @@ class AboutView(TemplateView):
 
 class RulesView(TemplateView):
     template_name = 'pages/rules.html'
+
+
+class RegistrationView(CreateView):
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy('blog:index')
+    template_name = 'registration/registration_form.html'
+
+
+class ProfileView(DetailView):
+    model = User
+    template_name = 'blog/profile.html'
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+    context_object_name = 'profile'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post_list = (
+            Post.objects.filter(author=self.object)
+            .annotate(comment_count=Count('comments'))
+            .order_by('-pub_date')
+        )
+        paginator = Paginator(post_list, 10)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = UserEditForm
+    template_name = 'registration/registration_form.html'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_url(self):
+        return reverse(
+            'profile', kwargs={'username': self.request.user.username}
+        )
+
+
+def page_not_found(request, exception):
+    return render(request, 'pages/404.html', status=404)
+
+
+def server_error(request):
+    return render(request, 'pages/500.html', status=500)
+
+
+def csrf_failure(request, reason=''):
+    return render(request, 'pages/403csrf.html', status=403)
