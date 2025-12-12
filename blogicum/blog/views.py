@@ -48,7 +48,7 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comment_form'] = CommentForm()
+        context['form'] = CommentForm()
         context['comments'] = self.object.comments.select_related(
             'author'
         ).order_by('created_at')
@@ -90,7 +90,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            'profile', kwargs={'username': self.request.user.username}
+            'blog:profile', kwargs={'username': self.request.user.username}
         )
 
 
@@ -121,6 +121,11 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'blog/detail.html'
     pk_url_kwarg = 'post_id'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        return context
+
     def handle_no_permission(self):
         return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
 
@@ -135,7 +140,7 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse(
-            'profile', kwargs={'username': self.request.user.username}
+            'blog:profile', kwargs={'username': self.request.user.username}
         )
 
 

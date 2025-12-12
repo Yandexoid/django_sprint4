@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from pages.views import ProfileView, ProfileUpdateView
 
 app_name = 'blog'
 
@@ -42,4 +43,6 @@ urlpatterns = [
         views.CategoryPostsView.as_view(),
         name='category_posts',
     ),
+    path('profile/edit/', ProfileUpdateView.as_view(), name='edit_profile'),
+    path('profile/<str:username>/', ProfileView.as_view(), name='profile'),
 ]

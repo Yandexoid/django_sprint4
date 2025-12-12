@@ -16,7 +16,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from pages.views import ProfileUpdateView, ProfileView, RegistrationView
+from pages.views import RegistrationView
 
 urlpatterns = [
     path('', include('blog.urls', namespace='blog')),
@@ -28,8 +28,6 @@ urlpatterns = [
     ),
     path('auth/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
-    path('profile/edit/', ProfileUpdateView.as_view(), name='edit_profile'),
-    path('profile/<str:username>/', ProfileView.as_view(), name='profile'),
 ]
 
 handler404 = 'pages.views.page_not_found'

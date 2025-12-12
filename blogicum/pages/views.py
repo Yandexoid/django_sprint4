@@ -74,7 +74,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse(
-            'profile', kwargs={'username': self.request.user.username}
+            'blog:profile', kwargs={'username': self.request.user.username}
         )
 
 
