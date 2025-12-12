@@ -128,7 +128,7 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
-    template_name = 'blog/detail.html'  # Reusing detail template
+    template_name = 'blog/detail.html'
 
     def handle_no_permission(self):
         return redirect('blog:post_detail', pk=self.kwargs['pk'])
