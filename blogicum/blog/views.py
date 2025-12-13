@@ -118,12 +118,14 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
-    template_name = 'blog/detail.html'
+    template_name = 'blog/create.html'
     pk_url_kwarg = 'post_id'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = CommentForm()
+        context['form'] = PostForm(instance=self.object)
+        for field in context['form'].fields:
+            context['form'].fields[field].disabled = True
         return context
 
     def handle_no_permission(self):
