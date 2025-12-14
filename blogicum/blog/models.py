@@ -1,18 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils import timezone
 
 
 User = get_user_model()
 
 
-class PostManager(models.Manager):
-    def get_published(self):
-        return self.filter(
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=timezone.now()
-        )
+class PostQuerySet(models.QuerySet):
+    def with_comment_count(self):
+        return self.annotate(comment_count=models.Count('comments'))
 
 
 class Category(models.Model):
@@ -98,7 +93,7 @@ class Post(models.Model):
     )
     created_at = models.DateTimeField('Добавлено', auto_now_add=True)
     image = models.ImageField('Картинка', upload_to='posts_images', blank=True)
-    objects = PostManager()
+    objects = PostQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'публикация'

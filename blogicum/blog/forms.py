@@ -10,7 +10,10 @@ class PostForm(forms.ModelForm):
             'is_published'
         )
         widgets = {
-            'pub_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'pub_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M'
+            ),
         }
 
 

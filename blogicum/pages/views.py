@@ -1,5 +1,4 @@
 from django.utils import timezone
-from django.db.models import Count
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
     CreateView, TemplateView, DetailView, UpdateView
@@ -7,10 +6,10 @@ from django.views.generic import (
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
-from django.core.paginator import Paginator
 
 from .forms import CustomUserCreationForm, UserEditForm
 from blog.models import Post
+from blog.utils import paginate_queryset
 
 User = get_user_model()
 
@@ -25,7 +24,7 @@ class RulesView(TemplateView):
 
 class RegistrationView(CreateView):
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('blog:index')
+    success_url = reverse_lazy('login')
     template_name = 'registration/registration_form.html'
 
 
@@ -39,17 +38,15 @@ class ProfileView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # The profile owner
         profile_user = self.object
-
-        # The person viewing the page
         viewer = self.request.user
 
-        post_list = Post.objects.filter(author=profile_user).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
+        post_list = (
+            Post.objects.filter(author=profile_user)
+            .with_comment_count()
+            .order_by('-pub_date')
+        )
 
-        # If the viewer is not the profile owner, filter for public posts
         if viewer != profile_user:
             post_list = post_list.filter(
                 is_published=True,
@@ -57,10 +54,7 @@ class ProfileView(DetailView):
                 pub_date__lte=timezone.now()
             )
 
-        paginator = Paginator(post_list, 10)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        context['page_obj'] = page_obj
+        context['page_obj'] = paginate_queryset(self.request, post_list)
         return context
 
 
